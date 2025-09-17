@@ -22,3 +22,9 @@ export interface CarouselImage {
     hint: string;
     active: boolean;
 }
+
+export interface Ad extends CarouselImage {
+    client: string;
+    description?: string;
+    link?: string;
+}
