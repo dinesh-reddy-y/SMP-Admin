@@ -71,8 +71,10 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
 
   return (
     <>
-      <div className="space-y-4">
-        <div className="relative border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 flex flex-col items-center justify-center text-center hover:border-primary transition-colors">
+        <div 
+            className="relative border-2 border-dashed border-muted-foreground/50 rounded-lg p-8 flex flex-col items-center justify-center text-center hover:border-primary transition-colors cursor-pointer"
+            onClick={() => fileInputRef.current?.click()}
+        >
           <UploadCloud className="h-12 w-12 text-muted-foreground" />
           <p className="mt-4 text-sm text-muted-foreground">
             Click to select an image
@@ -81,13 +83,12 @@ export function FileUpload({ onUploadComplete }: FileUploadProps) {
             id="file-upload"
             type="file"
             accept="image/*"
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            className="hidden"
             onChange={handleFileChange}
             disabled={isUploading}
             ref={fileInputRef}
           />
         </div>
-      </div>
       {imageToEdit && (
         <ImageEditorDialog
           image={imageToEdit}

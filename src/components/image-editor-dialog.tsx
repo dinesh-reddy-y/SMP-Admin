@@ -16,6 +16,7 @@ import { Slider } from './ui/slider';
 import { Label } from './ui/label';
 import type { CarouselImage } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
+import { RadioGroup, RadioGroupItem } from './ui/radio-group';
 
 interface ImageEditorDialogProps {
   image: CarouselImage;
@@ -61,7 +62,7 @@ export function ImageEditorDialog({ image, onSave, onClose }: ImageEditorDialogP
 
   const handleSaveCrop = () => {
     const imageElement = imgRef.current;
-    if (!imageElement || !completedCrop) {
+    if (!imageElement || !completedCrop || !completedCrop.width || !completedCrop.height) {
         toast({
             variant: "destructive",
             title: "Error",
@@ -74,9 +75,16 @@ export function ImageEditorDialog({ image, onSave, onClose }: ImageEditorDialogP
     const scaleX = imageElement.naturalWidth / imageElement.width;
     const scaleY = imageElement.naturalHeight / imageElement.height;
     
-    canvas.width = Math.floor(completedCrop.width * scaleX);
-    canvas.height = Math.floor(completedCrop.height * scaleY);
+    const cropX = completedCrop.x * scaleX;
+    const cropY = completedCrop.y * scaleY;
 
+    const rotated = rotate % 360 !== 0;
+    const BoundingBoxWidth = !rotated ? completedCrop.width * scaleX : imageElement.naturalWidth;
+    const BoundingBoxHeight = !rotated ? completedCrop.height * scaleY : imageElement.naturalHeight;
+    
+    canvas.width = BoundingBoxWidth;
+    canvas.height = BoundingBoxHeight;
+    
     const ctx = canvas.getContext('2d');
     if (!ctx) {
         toast({
@@ -86,27 +94,29 @@ export function ImageEditorDialog({ image, onSave, onClose }: ImageEditorDialogP
         });
         return;
     }
-
-    const cropX = completedCrop.x * scaleX;
-    const cropY = completedCrop.y * scaleY;
-
-    ctx.save();
-    ctx.translate(canvas.width / 2, canvas.height / 2);
+    
+    ctx.translate(BoundingBoxWidth / 2, BoundingBoxHeight / 2);
     ctx.rotate((rotate * Math.PI) / 180);
-    ctx.scale(scale, scale);
-    ctx.translate(-canvas.width / 2, -canvas.height / 2);
+    ctx.translate(-(BoundingBoxWidth / 2), -(BoundingBoxHeight / 2));
+    
     ctx.drawImage(
       imageElement,
-      cropX,
-      cropY,
-      canvas.width,
-      canvas.height,
       0,
       0,
-      canvas.width,
-      canvas.height
+      imageElement.naturalWidth,
+      imageElement.naturalHeight,
+      (BoundingBoxWidth-imageElement.naturalWidth)/2,
+      (BoundingBoxHeight-imageElement.naturalHeight)/2,
+      imageElement.naturalWidth,
+      imageElement.naturalHeight
     );
-    ctx.restore();
+    
+    const data = ctx.getImageData(cropX, cropY, completedCrop.width * scaleX, completedCrop.height * scaleY);
+    
+    canvas.width = completedCrop.width * scaleX;
+    canvas.height = completedCrop.height * scaleY;
+    
+    ctx.putImageData(data, 0, 0);
 
     const dataUrl = canvas.toDataURL('image/jpeg');
     onSave(image.id, dataUrl);
@@ -116,17 +126,30 @@ export function ImageEditorDialog({ image, onSave, onClose }: ImageEditorDialogP
     });
   };
 
+  const handleAspectChange = (value: string) => {
+    const newAspect = value === 'free' ? undefined : parseFloat(value);
+    setAspect(newAspect);
+    if (imgRef.current) {
+        const { width, height } = imgRef.current;
+        if (newAspect) {
+            setCrop(centerAspectCrop(width, height, newAspect));
+        } else {
+            setCrop(undefined);
+        }
+    }
+  }
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Edit Image</DialogTitle>
           <DialogDescription>
             Crop, rotate, and scale your image. Click save when you're done.
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-            <div className="flex justify-center bg-muted/40 p-4 rounded-md">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 py-4">
+            <div className="md:col-span-2 flex justify-center bg-muted/40 p-4 rounded-md h-96">
                 <ReactCrop
                     crop={crop}
                     onChange={c => setCrop(c)}
@@ -137,13 +160,43 @@ export function ImageEditorDialog({ image, onSave, onClose }: ImageEditorDialogP
                         ref={imgRef}
                         alt="Crop me"
                         src={image.src}
+                        className='object-contain h-full'
                         style={{ transform: `scale(${scale}) rotate(${rotate}deg)` }}
                         onLoad={onImageLoad}
                         crossOrigin="anonymous"
                     />
                 </ReactCrop>
             </div>
-            <div className='space-y-4'>
+            <div className='space-y-6'>
+                <div>
+                    <Label>Aspect Ratio</Label>
+                    <RadioGroup defaultValue={aspect ? (16/9).toString() : 'free'} onValueChange={handleAspectChange} className="grid grid-cols-2 gap-2 mt-2">
+                        <div>
+                            <RadioGroupItem value={(16/9).toString()} id="r1" className="peer sr-only" />
+                            <Label htmlFor="r1" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-center text-sm">
+                            16:9
+                            </Label>
+                        </div>
+                        <div>
+                            <RadioGroupItem value={(4/3).toString()} id="r2" className="peer sr-only" />
+                            <Label htmlFor="r2" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-center text-sm">
+                            4:3
+                            </Label>
+                        </div>
+                        <div>
+                            <RadioGroupItem value="1" id="r3" className="peer sr-only" />
+                            <Label htmlFor="r3" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-center text-sm">
+                            1:1
+                            </Label>
+                        </div>
+                         <div>
+                            <RadioGroupItem value="free" id="r4" className="peer sr-only" />
+                            <Label htmlFor="r4" className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-2 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary text-center text-sm">
+                            Free
+                            </Label>
+                        </div>
+                    </RadioGroup>
+                </div>
                 <div>
                     <Label htmlFor="scale-slider">Scale</Label>
                     <Slider id="scale-slider" defaultValue={[1]} min={0.5} max={2} step={0.1} onValueChange={(value) => setScale(value[0])} />
