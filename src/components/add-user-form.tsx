@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -40,6 +40,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { CheckCircle } from "lucide-react";
+import { auth } from "@/lib/firebase";
+import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
 
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
@@ -50,6 +52,13 @@ const formSchema = z.object({
 
 type VerificationStatus = 'unverified' | 'pending' | 'verified';
 const MOCK_OTP = "123456";
+
+declare global {
+    interface Window {
+        recaptchaVerifier?: RecaptchaVerifier;
+        confirmationResult?: ConfirmationResult;
+    }
+}
 
 export function AddUserForm() {
     const { toast } = useToast();
@@ -68,37 +77,89 @@ export function AddUserForm() {
         },
     });
 
+    useEffect(() => {
+        if (verificationTarget === 'phone' && phoneStatus !== 'verified') {
+            try {
+                window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+                    'size': 'invisible',
+                    'callback': (response: any) => {
+                        // reCAPTCHA solved, allow signInWithPhoneNumber.
+                    }
+                });
+            } catch (error) {
+                console.error("Error initializing reCAPTCHA", error);
+                toast({
+                    variant: "destructive",
+                    title: "reCAPTCHA Error",
+                    description: "Could not initialize reCAPTCHA. Please refresh and try again.",
+                });
+            }
+        }
+    }, [verificationTarget, phoneStatus, toast]);
+
     const isVerified = emailStatus === 'verified' && phoneStatus === 'verified';
 
-    const handleVerifyClick = (target: 'email' | 'phone') => {
+    const handleVerifyClick = async (target: 'email' | 'phone') => {
         const value = form.getValues(target);
         if (target === 'email' && !/^\S+@\S+\.\S+$/.test(value)) {
             form.setError(target, { type: 'manual', message: 'Please enter a valid email to verify.' });
             return;
         }
-        if (target === 'phone' && value.length < 10) {
-            form.setError(target, { type: 'manual', message: 'Please enter a valid phone number to verify.' });
+        if (target === 'phone' && !/^\+?[1-9]\d{1,14}$/.test(value)) {
+            form.setError(target, { type: 'manual', message: 'Please enter a valid phone number (e.g., +14155552671) to verify.' });
             return;
         }
         form.clearErrors(target);
-        setVerificationTarget(target);
+
+        if (target === 'phone') {
+            try {
+                const appVerifier = window.recaptchaVerifier!;
+                const confirmationResult = await signInWithPhoneNumber(auth, value, appVerifier);
+                window.confirmationResult = confirmationResult;
+                setVerificationTarget(target);
+            } catch (error) {
+                console.error("SMS not sent", error);
+                toast({
+                    variant: "destructive",
+                    title: "Failed to send OTP",
+                    description: "Could not send verification code. Please check the phone number and try again.",
+                });
+            }
+        } else {
+             setVerificationTarget(target);
+        }
     };
 
-    const handleOtpSubmit = () => {
-        if (otp === MOCK_OTP) {
-            if (verificationTarget === 'email') {
-                setEmailStatus('verified');
-            } else if (verificationTarget === 'phone') {
-                setPhoneStatus('verified');
+    const handleOtpSubmit = async () => {
+        if (verificationTarget === 'phone') {
+            if (window.confirmationResult) {
+                try {
+                    await window.confirmationResult.confirm(otp);
+                    setPhoneStatus('verified');
+                    toast({
+                        title: "Success",
+                        description: "Phone number verified successfully.",
+                    });
+                    setVerificationTarget(null);
+                    setOtp("");
+                } catch (error) {
+                     toast({
+                        variant: "destructive",
+                        title: "Invalid OTP",
+                        description: "The code you entered is incorrect. Please try again.",
+                    });
+                }
             }
+        } else if (otp === MOCK_OTP) { // Mock email verification
+            setEmailStatus('verified');
             toast({
                 title: "Success",
-                description: `${verificationTarget === 'email' ? 'Email' : 'Phone number'} verified successfully.`,
+                description: `Email verified successfully.`,
             });
             setVerificationTarget(null);
             setOtp("");
         } else {
-            toast({
+             toast({
                 variant: "destructive",
                 title: "Invalid OTP",
                 description: "The code you entered is incorrect. Please try again.",
@@ -130,6 +191,7 @@ export function AddUserForm() {
 
     return (
         <>
+            <div id="recaptcha-container"></div>
             <Card>
             <CardHeader>
                 <CardTitle>Add New User</CardTitle>
@@ -183,7 +245,7 @@ export function AddUserForm() {
                         <FormLabel>Phone Number</FormLabel>
                         <div className="flex items-center gap-2">
                         <FormControl>
-                            <Input type="tel" placeholder="(123) 456-7890" {...field} disabled={phoneStatus === 'verified'} />
+                            <Input type="tel" placeholder="+1 123 456 7890" {...field} disabled={phoneStatus === 'verified'} />
                         </FormControl>
                          {phoneStatus === 'verified' ? (
                                 <div className="flex items-center text-green-600">
@@ -236,7 +298,8 @@ export function AddUserForm() {
                     <DialogHeader>
                         <DialogTitle>Verify your {verificationTarget}</DialogTitle>
                         <DialogDescription>
-                            We've sent a verification code. Please enter it below. (Hint: use {MOCK_OTP})
+                            We've sent a verification code. Please enter it below.
+                            {verificationTarget === 'email' && ` (Hint: use ${MOCK_OTP})`}
                         </DialogDescription>
                     </DialogHeader>
                     <div className="grid gap-4 py-4">
