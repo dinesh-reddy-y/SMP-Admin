@@ -14,3 +14,11 @@ export interface Notification {
   message: string;
   timestamp: Date;
 }
+
+export interface CarouselImage {
+    id: number;
+    src: string;
+    alt: string;
+    hint: string;
+    active: boolean;
+}
