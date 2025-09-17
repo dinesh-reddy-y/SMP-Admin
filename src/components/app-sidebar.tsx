@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   Sidebar,
   SidebarHeader,
@@ -20,6 +22,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 
 export function AppSidebar() {
+  const pathname = usePathname();
+
   return (
     <Sidebar>
       <SidebarHeader>
@@ -31,28 +35,44 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarMenu>
           <SidebarMenuItem>
-            <SidebarMenuButton isActive>
-              <Home />
-              Dashboard
-            </SidebarMenuButton>
+            <Link href="/" passHref>
+              <SidebarMenuButton asChild isActive={pathname === "/"}>
+                <>
+                  <Home />
+                  Dashboard
+                </>
+              </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton>
-              <Users />
-              Users
-            </SidebarMenuButton>
+            <Link href="/users" passHref>
+              <SidebarMenuButton asChild isActive={pathname === "/users"}>
+                <>
+                  <Users />
+                  Users
+                </>
+              </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton>
-              <Settings />
-              Settings
-            </SidebarMenuButton>
+            <Link href="/settings" passHref>
+              <SidebarMenuButton asChild isActive={pathname === "/settings"}>
+                <>
+                  <Settings />
+                  Settings
+                </>
+              </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
-            <SidebarMenuButton>
-              <Shield />
-              Admin
-            </SidebarMenuButton>
+            <Link href="/admin" passHref>
+              <SidebarMenuButton asChild isActive={pathname === "/admin"}>
+                <>
+                  <Shield />
+                  Admin
+                </>
+              </SidebarMenuButton>
+            </Link>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
@@ -70,8 +90,10 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton>
-              <LogOut />
-              Logout
+              <>
+                <LogOut />
+                Logout
+              </>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
