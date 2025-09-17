@@ -44,7 +44,8 @@ import { auth } from "@/lib/firebase";
 import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "firebase/auth";
 
 const formSchema = z.object({
-  name: z.string().min(2, { message: "Name must be at least 2 characters." }),
+  firstName: z.string().min(1, { message: "First name is required." }),
+  lastName: z.string().min(1, { message: "Last name is required." }),
   email: z.string().email({ message: "Invalid email address." }),
   phone: z.string().regex(/^\+[1-9]\d{1,14}$/, { message: "Phone number must be in E.164 format (e.g., +14155552671)." }),
   role: z.enum(["Admin", "User", "Guest"]),
@@ -70,10 +71,11 @@ export function AddUserForm() {
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-        name: "",
-        email: "",
-        phone: "",
-        role: "User",
+            firstName: "",
+            lastName: "",
+            email: "",
+            phone: "",
+            role: "User",
         },
     });
 
@@ -175,12 +177,18 @@ export function AddUserForm() {
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
         try {
-            console.log("Submitting:", values);
+            const submissionValues = {
+                name: `${values.firstName} ${values.lastName}`,
+                email: values.email,
+                phone: values.phone,
+                role: values.role,
+            };
+            console.log("Submitting:", submissionValues);
             await new Promise(resolve => setTimeout(resolve, 1000));
             
             toast({
                 title: "User created!",
-                description: `User ${values.name} has been successfully created.`,
+                description: `User ${submissionValues.name} has been successfully created.`,
             });
             form.reset();
             setEmailStatus('unverified');
@@ -205,19 +213,34 @@ export function AddUserForm() {
             <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)}>
                 <CardContent className="space-y-4">
-                    <FormField
-                    control={form.control}
-                    name="name"
-                    render={({ field }) => (
-                        <FormItem>
-                        <FormLabel>Name</FormLabel>
-                        <FormControl>
-                            <Input placeholder="John Doe" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                        </FormItem>
-                    )}
-                    />
+                    <div className="grid grid-cols-2 gap-4">
+                        <FormField
+                        control={form.control}
+                        name="firstName"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>First Name</FormLabel>
+                            <FormControl>
+                                <Input placeholder="John" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                        <FormField
+                        control={form.control}
+                        name="lastName"
+                        render={({ field }) => (
+                            <FormItem>
+                            <FormLabel>Last Name</FormLabel>
+                            <FormControl>
+                                <Input placeholder="Doe" {...field} />
+                            </FormControl>
+                            <FormMessage />
+                            </FormItem>
+                        )}
+                        />
+                    </div>
                     <FormField
                     control={form.control}
                     name="email"
@@ -326,3 +349,5 @@ export function AddUserForm() {
         </>
     );
 }
+
+    
