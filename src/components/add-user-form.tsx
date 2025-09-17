@@ -46,7 +46,7 @@ import { RecaptchaVerifier, signInWithPhoneNumber, ConfirmationResult } from "fi
 const formSchema = z.object({
   name: z.string().min(2, { message: "Name must be at least 2 characters." }),
   email: z.string().email({ message: "Invalid email address." }),
-  phone: z.string().min(10, { message: "Phone number must be at least 10 digits." }),
+  phone: z.string().regex(/^\+[1-9]\d{1,14}$/, { message: "Phone number must be in E.164 format (e.g., +14155552671)." }),
   role: z.enum(["Admin", "User", "Guest"]),
 });
 
@@ -80,12 +80,14 @@ export function AddUserForm() {
     useEffect(() => {
         if (verificationTarget === 'phone' && phoneStatus !== 'verified') {
             try {
-                window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-                    'size': 'invisible',
-                    'callback': (response: any) => {
-                        // reCAPTCHA solved, allow signInWithPhoneNumber.
-                    }
-                });
+                if (!window.recaptchaVerifier) {
+                    window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+                        'size': 'invisible',
+                        'callback': (response: any) => {
+                            // reCAPTCHA solved, allow signInWithPhoneNumber.
+                        }
+                    });
+                }
             } catch (error) {
                 console.error("Error initializing reCAPTCHA", error);
                 toast({
@@ -101,13 +103,13 @@ export function AddUserForm() {
 
     const handleVerifyClick = async (target: 'email' | 'phone') => {
         const value = form.getValues(target);
-        if (target === 'email' && !/^\S+@\S+\.\S+$/.test(value)) {
-            form.setError(target, { type: 'manual', message: 'Please enter a valid email to verify.' });
-            return;
+        if (target === 'email') {
+            const isValid = await form.trigger('email');
+            if (!isValid) return;
         }
-        if (target === 'phone' && !/^\+?[1-9]\d{1,14}$/.test(value)) {
-            form.setError(target, { type: 'manual', message: 'Please enter a valid phone number (e.g., +14155552671) to verify.' });
-            return;
+        if (target === 'phone') {
+            const isValid = await form.trigger('phone');
+            if (!isValid) return;
         }
         form.clearErrors(target);
 
@@ -124,6 +126,13 @@ export function AddUserForm() {
                     title: "Failed to send OTP",
                     description: "Could not send verification code. Please check the phone number and try again.",
                 });
+                 // This can happen if reCAPTCHA fails. Reset it.
+                if (window.recaptchaVerifier) {
+                    window.recaptchaVerifier.render().then((widgetId) => {
+                        // @ts-ignore
+                        window.recaptchaVerifier.reset(widgetId);
+                    });
+                }
             }
         } else {
              setVerificationTarget(target);
@@ -245,7 +254,7 @@ export function AddUserForm() {
                         <FormLabel>Phone Number</FormLabel>
                         <div className="flex items-center gap-2">
                         <FormControl>
-                            <Input type="tel" placeholder="+1 123 456 7890" {...field} disabled={phoneStatus === 'verified'} />
+                            <Input type="tel" placeholder="+11234567890" {...field} disabled={phoneStatus === 'verified'} />
                         </FormControl>
                          {phoneStatus === 'verified' ? (
                                 <div className="flex items-center text-green-600">
