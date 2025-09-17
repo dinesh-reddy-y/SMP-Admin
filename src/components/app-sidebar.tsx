@@ -3,6 +3,11 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import {
   Sidebar,
   SidebarHeader,
   SidebarContent,
@@ -15,14 +20,23 @@ import {
   Users,
   Package,
   LogOut,
-  Settings,
-  Shield,
+  ChevronRight,
   Home,
+  LayoutGrid,
+  UserPlus,
+  UserCog,
+  PictureInPicture,
+  BadgePercent,
+  TicketPercent,
 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
+import { cn } from "@/lib/utils";
+import { useState } from "react";
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const [userMenuOpen, setUserMenuOpen] = useState(pathname.startsWith('/users'));
+  const [clientAppMenuOpen, setClientAppMenuOpen] = useState(pathname.startsWith('/client-app'));
 
   return (
     <Sidebar>
@@ -44,35 +58,97 @@ export function AppSidebar() {
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <Link href="/users" passHref>
-              <SidebarMenuButton asChild isActive={pathname === "/users"}>
-                <span>
+
+          <SidebarMenuItem asChild>
+            <Collapsible open={userMenuOpen} onOpenChange={setUserMenuOpen}>
+              <CollapsibleTrigger asChild>
+                <SidebarMenuButton>
                   <Users />
-                  Users
-                </span>
-              </SidebarMenuButton>
-            </Link>
+                  <span>User Section</span>
+                  <ChevronRight className={cn("ml-auto h-4 w-4 transition-transform", userMenuOpen && "rotate-90")} />
+                </SidebarMenuButton>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pl-4">
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <Link href="/users/new" passHref>
+                      <SidebarMenuButton asChild isActive={pathname === "/users/new"}>
+                        <span>
+                          <UserPlus />
+                          New Users
+                        </span>
+                      </SidebarMenuButton>
+                    </Link>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <Link href="/users/existing" passHref>
+                      <SidebarMenuButton asChild isActive={pathname === "/users/existing"}>
+                        <span>
+                          <Users />
+                          Existing Users
+                        </span>
+                      </SidebarMenuButton>
+                    </Link>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <Link href="/users/add-admin" passHref>
+                      <SidebarMenuButton asChild isActive={pathname === "/users/add-admin"}>
+                        <span>
+                          <UserCog />
+                          Add Admin
+                        </span>
+                      </SidebarMenuButton>
+                    </Link>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </CollapsibleContent>
+            </Collapsible>
           </SidebarMenuItem>
-          <SidebarMenuItem>
-            <Link href="/settings" passHref>
-              <SidebarMenuButton asChild isActive={pathname === "/settings"}>
-                <span>
-                  <Settings />
-                  Settings
-                </span>
-              </SidebarMenuButton>
-            </Link>
-          </SidebarMenuItem>
-          <SidebarMenuItem>
-            <Link href="/admin" passHref>
-              <SidebarMenuButton asChild isActive={pathname === "/admin"}>
-                <span>
-                  <Shield />
-                  Admin
-                </span>
-              </SidebarMenuButton>
-            </Link>
+
+          <SidebarMenuItem asChild>
+            <Collapsible open={clientAppMenuOpen} onOpenChange={setClientAppMenuOpen}>
+              <CollapsibleTrigger asChild>
+                <SidebarMenuButton>
+                  <LayoutGrid />
+                  <span>Client App</span>
+                  <ChevronRight className={cn("ml-auto h-4 w-4 transition-transform", clientAppMenuOpen && "rotate-90")} />
+                </SidebarMenuButton>
+              </CollapsibleTrigger>
+              <CollapsibleContent className="pl-4">
+                <SidebarMenu>
+                  <SidebarMenuItem>
+                    <Link href="/client-app/carousel" passHref>
+                      <SidebarMenuButton asChild isActive={pathname === "/client-app/carousel"}>
+                        <span>
+                          <PictureInPicture />
+                          Carousel
+                        </span>
+                      </SidebarMenuButton>
+                    </Link>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <Link href="/client-app/ads" passHref>
+                      <SidebarMenuButton asChild isActive={pathname === "/client-app/ads"}>
+                        <span>
+                          <BadgePercent />
+                          Ads
+                        </span>
+                      </SidebarMenuButton>
+                    </Link>
+                  </SidebarMenuItem>
+                  <SidebarMenuItem>
+                    <Link href="/client-app/promocodes" passHref>
+                      <SidebarMenuButton asChild isActive={pathname === "/client-app/promocodes"}>
+                        <span>
+                          <TicketPercent />
+                          Promocodes
+                        </span>
+                      </SidebarMenuButton>
+                    </Link>
+                  </SidebarMenuItem>
+                </SidebarMenu>
+              </CollapsibleContent>
+            </Collapsible>
           </SidebarMenuItem>
         </SidebarMenu>
       </SidebarContent>
