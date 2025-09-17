@@ -1,9 +1,9 @@
+
 "use client";
 
 import { useState } from "react";
 import Image from "next/image";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
-import { FileUpload } from "@/components/file-upload";
 import { Button } from "@/components/ui/button";
 import { Trash2, Edit, CheckCircle, XCircle } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { ImageEditorDialog } from "@/components/image-editor-dialog";
 import type { CarouselImage } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
+import { FileUpload } from "@/components/file-upload";
 
 const initialCarouselImages: CarouselImage[] = [
   { id: 1, src: "https://picsum.photos/seed/carousel1/800/400", alt: "Carousel Image 1", hint: "nature landscape", active: true },
@@ -30,6 +31,17 @@ export default function CarouselPage() {
     setImages(images.map(img => img.id === id ? { ...img, src: newSrc } : img));
     setEditingImage(null);
   };
+  
+  const handleNewImage = (newImageSrc: string) => {
+    const newImage: CarouselImage = {
+        id: images.length > 0 ? Math.max(...images.map(i => i.id)) + 1 : 1,
+        src: newImageSrc,
+        alt: `Carousel Image ${images.length + 1}`,
+        hint: 'new custom image',
+        active: true,
+    };
+    setImages(prevImages => [newImage, ...prevImages]);
+  }
 
   return (
     <main className="flex-1 p-4 md:p-6 space-y-6">
@@ -37,17 +49,17 @@ export default function CarouselPage() {
         <h1 className="text-2xl font-bold tracking-tight">Carousel Management</h1>
         <p className="text-muted-foreground">Manage the images displayed in the client app's main carousel.</p>
       </div>
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card>
+      <div className="grid gap-6 lg:grid-cols-2 xl:grid-cols-3">
+        <Card className="xl:col-span-1">
           <CardHeader>
             <CardTitle>Upload New Image</CardTitle>
             <CardDescription>Add a new image to the carousel rotation.</CardDescription>
           </CardHeader>
           <CardContent>
-            <FileUpload />
+            <FileUpload onUploadComplete={handleNewImage}/>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="xl:col-span-2">
           <CardHeader>
             <CardTitle>Current Carousel Images</CardTitle>
             <CardDescription>View and manage existing carousel images.</CardDescription>
