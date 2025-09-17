@@ -78,26 +78,25 @@ export function AddUserForm() {
     });
 
     useEffect(() => {
-        if (verificationTarget === 'phone' && phoneStatus !== 'verified') {
-            try {
-                if (!window.recaptchaVerifier) {
-                    window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
-                        'size': 'invisible',
-                        'callback': (response: any) => {
-                            // reCAPTCHA solved, allow signInWithPhoneNumber.
-                        }
-                    });
-                }
-            } catch (error) {
-                console.error("Error initializing reCAPTCHA", error);
-                toast({
-                    variant: "destructive",
-                    title: "reCAPTCHA Error",
-                    description: "Could not initialize reCAPTCHA. Please refresh and try again.",
+        try {
+            if (!window.recaptchaVerifier) {
+                window.recaptchaVerifier = new RecaptchaVerifier(auth, "recaptcha-container", {
+                    'size': 'invisible',
+                    'callback': (response: any) => {
+                        // reCAPTCHA solved, allow signInWithPhoneNumber.
+                    }
                 });
+                window.recaptchaVerifier.render(); // Render the verifier on mount
             }
+        } catch (error) {
+            console.error("Error initializing reCAPTCHA", error);
+            toast({
+                variant: "destructive",
+                title: "reCAPTCHA Error",
+                description: "Could not initialize reCAPTCHA. Please refresh and try again.",
+            });
         }
-    }, [verificationTarget, phoneStatus, toast]);
+    }, [toast]);
 
     const isVerified = emailStatus === 'verified' && phoneStatus === 'verified';
 
@@ -128,10 +127,8 @@ export function AddUserForm() {
                 });
                  // This can happen if reCAPTCHA fails. Reset it.
                 if (window.recaptchaVerifier) {
-                    window.recaptchaVerifier.render().then((widgetId) => {
-                        // @ts-ignore
-                        window.recaptchaVerifier.reset(widgetId);
-                    });
+                    // @ts-ignore
+                    window.recaptchaVerifier.reset();
                 }
             }
         } else {
