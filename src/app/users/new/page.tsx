@@ -1,6 +1,6 @@
 import { UserDetailCard } from "@/components/user-detail-card";
 import type { User } from "@/lib/types";
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 const newUsers: User[] = [
@@ -29,20 +29,16 @@ const newUsers: User[] = [
 export default function NewUsersPage() {
   return (
     <main className="flex-1 p-4 md:p-6 space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>New Users</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground mb-4">A list of recently registered users.</p>
-          <Separator />
-          <div className="grid gap-6 mt-4 md:grid-cols-2 lg:grid-cols-3">
-            {newUsers.map(user => (
-              <UserDetailCard key={user.id} user={user} />
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="space-y-2">
+        <h1 className="text-2xl font-bold tracking-tight">New Users</h1>
+        <p className="text-muted-foreground">A list of recently registered users.</p>
+      </div>
+      <Separator />
+      <div className="grid gap-6 mt-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {newUsers.map(user => (
+          <UserDetailCard key={user.id} user={user} />
+        ))}
+      </div>
     </main>
   );
 }
