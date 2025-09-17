@@ -37,40 +37,40 @@ export function AppSidebar() {
           <SidebarMenuItem>
             <Link href="/" passHref>
               <SidebarMenuButton asChild isActive={pathname === "/"}>
-                <>
+                <span>
                   <Home />
                   Dashboard
-                </>
+                </span>
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <Link href="/users" passHref>
               <SidebarMenuButton asChild isActive={pathname === "/users"}>
-                <>
+                <span>
                   <Users />
                   Users
-                </>
+                </span>
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <Link href="/settings" passHref>
               <SidebarMenuButton asChild isActive={pathname === "/settings"}>
-                <>
+                <span>
                   <Settings />
                   Settings
-                </>
+                </span>
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
           <SidebarMenuItem>
             <Link href="/admin" passHref>
               <SidebarMenuButton asChild isActive={pathname === "/admin"}>
-                <>
+                <span>
                   <Shield />
                   Admin
-                </>
+                </span>
               </SidebarMenuButton>
             </Link>
           </SidebarMenuItem>
@@ -90,10 +90,10 @@ export function AppSidebar() {
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton>
-              <>
+              <span>
                 <LogOut />
                 Logout
-              </>
+              </span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
