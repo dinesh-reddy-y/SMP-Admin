@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useRef } from 'react';
@@ -44,6 +45,14 @@ function centerAspectCrop(
   )
 }
 
+const fullImageCrop: Crop = {
+    unit: '%',
+    width: 100,
+    height: 100,
+    x: 0,
+    y: 0
+};
+
 export function ImageEditorDialog({ image, onSave, onClose }: ImageEditorDialogProps) {
   const { toast } = useToast();
   const [crop, setCrop] = useState<Crop>();
@@ -57,6 +66,8 @@ export function ImageEditorDialog({ image, onSave, onClose }: ImageEditorDialogP
     const { width, height } = e.currentTarget;
     if (aspect) {
       setCrop(centerAspectCrop(width, height, aspect));
+    } else {
+      setCrop(fullImageCrop);
     }
   }
 
@@ -134,7 +145,7 @@ export function ImageEditorDialog({ image, onSave, onClose }: ImageEditorDialogP
         if (newAspect) {
             setCrop(centerAspectCrop(width, height, newAspect));
         } else {
-            setCrop(undefined);
+            setCrop(fullImageCrop);
         }
     }
   }
