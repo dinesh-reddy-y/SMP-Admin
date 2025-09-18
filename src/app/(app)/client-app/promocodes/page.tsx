@@ -1,11 +1,16 @@
+
+"use client";
+
+import { useState, useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PlusCircle, Edit, Trash2, Copy } from "lucide-react";
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { format } from 'date-fns';
+import { Skeleton } from "@/components/ui/skeleton";
 
-const promocodes = [
+const promocodesData = [
   { id: 1, code: "SUMMER25", discount: "25%", status: "Active", expiry: new Date('2024-08-31'), uses: 152 },
   { id: 2, code: "WELCOME10", discount: "10%", status: "Active", expiry: new Date('2024-12-31'), uses: 891 },
   { id: 3, code: "FLASH50", discount: "50%", status: "Expired", expiry: new Date('2024-05-20'), uses: 200 },
@@ -13,6 +18,20 @@ const promocodes = [
 ];
 
 export default function PromocodesPage() {
+  const [promocodes, setPromocodes] = useState<typeof promocodesData>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPromocodes = async () => {
+        setLoading(true);
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        setPromocodes(promocodesData);
+        setLoading(false);
+    };
+    fetchPromocodes();
+  }, []);
+
   return (
     <main className="flex-1 p-4 md:p-6 space-y-6">
       <div className="flex items-center justify-between">
@@ -42,36 +61,49 @@ export default function PromocodesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {promocodes.map((promo) => (
-                <TableRow key={promo.id}>
-                  <TableCell className="font-medium">
-                    <div className="flex items-center gap-2">
-                        <span>{promo.code}</span>
-                        <Button variant="ghost" size="icon" className="h-6 w-6">
-                            <Copy className="h-3 w-3" />
+              {loading ? (
+                Array.from({ length: 4 }).map((_, index) => (
+                    <TableRow key={index}>
+                        <TableCell><Skeleton className="h-5 w-24" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-20" /></TableCell>
+                        <TableCell><Skeleton className="h-6 w-16 rounded-full" /></TableCell>
+                        <TableCell><Skeleton className="h-5 w-28" /></TableCell>
+                        <TableCell className="text-right"><Skeleton className="h-5 w-12 ml-auto" /></TableCell>
+                        <TableCell className="text-right"><div className="flex justify-end gap-2"><Skeleton className="h-8 w-8" /><Skeleton className="h-8 w-8" /></div></TableCell>
+                    </TableRow>
+                ))
+              ) : (
+                promocodes.map((promo) => (
+                    <TableRow key={promo.id}>
+                    <TableCell className="font-medium">
+                        <div className="flex items-center gap-2">
+                            <span>{promo.code}</span>
+                            <Button variant="ghost" size="icon" className="h-6 w-6">
+                                <Copy className="h-3 w-3" />
+                            </Button>
+                        </div>
+                    </TableCell>
+                    <TableCell>{promo.discount}</TableCell>
+                    <TableCell>
+                        <Badge variant={promo.status === 'Active' ? 'default' : 'outline'}>
+                        {promo.status}
+                        </Badge>
+                    </TableCell>
+                    <TableCell>{format(promo.expiry, 'PPP')}</TableCell>
+                    <TableCell className="text-right">{promo.uses.toLocaleString()}</TableCell>
+                    <TableCell className="text-right">
+                        <div className="flex justify-end gap-2">
+                        <Button variant="ghost" size="icon">
+                            <Edit className="h-4 w-4" />
                         </Button>
-                    </div>
-                  </TableCell>
-                  <TableCell>{promo.discount}</TableCell>
-                  <TableCell>
-                    <Badge variant={promo.status === 'Active' ? 'default' : 'outline'}>
-                      {promo.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>{format(promo.expiry, 'PPP')}</TableCell>
-                  <TableCell className="text-right">{promo.uses.toLocaleString()}</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                        <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
+                            <Trash2 className="h-4 w-4" />
+                        </Button>
+                        </div>
+                    </TableCell>
+                    </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

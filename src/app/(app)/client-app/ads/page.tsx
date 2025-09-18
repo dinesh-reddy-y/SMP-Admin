@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { PlusCircle, Edit, Trash2, CheckCircle, XCircle, UploadCloud } from "luc
 import { Badge } from "@/components/ui/badge";
 import { AdEditorDialog } from "@/components/ad-editor-dialog";
 import type { Ad } from "@/lib/types";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const initialAds: Ad[] = [
   { id: 1, src: "https://picsum.photos/seed/ad1/600/400", alt: "Summer Sale Banner", hint: "summer sale", active: true, client: "FashionNova", description: "Get 50% off on all summer collections.", link: "https://example.com/sale" },
@@ -16,9 +17,40 @@ const initialAds: Ad[] = [
   { id: 3, src: "https://picsum.photos/seed/ad3/600/400", alt: "Holiday Travel Deals", hint: "travel holiday", active: false, client: "GoTravel", description: "Explore the world with our exclusive deals.", link: "https://example.com/travel" },
 ];
 
+const AdSkeleton = () => (
+    <Card className="flex flex-col overflow-hidden">
+        <Skeleton className="h-48 w-full" />
+        <CardContent className="p-4 flex-grow space-y-2">
+            <Skeleton className="h-5 w-3/4" />
+            <Skeleton className="h-4 w-1/2" />
+            <Skeleton className="h-4 w-full" />
+            <Skeleton className="h-4 w-5/6" />
+        </CardContent>
+        <CardFooter className="p-2 border-t bg-muted/50">
+            <div className="flex w-full justify-end gap-2">
+                <Skeleton className="h-8 w-8" />
+                <Skeleton className="h-8 w-8" />
+            </div>
+        </CardFooter>
+    </Card>
+);
+
+
 export default function AdsPage() {
-    const [ads, setAds] = useState<Ad[]>(initialAds);
+    const [ads, setAds] = useState<Ad[]>([]);
     const [editingAd, setEditingAd] = useState<Partial<Ad> | null>(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchAds = async () => {
+            setLoading(true);
+            // Simulate API call
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            setAds(initialAds);
+            setLoading(false);
+        };
+        fetchAds();
+    }, []);
 
     const handleSaveAd = (adData: Ad) => {
         const existingAdIndex = ads.findIndex(ad => ad.id === adData.id);
@@ -53,7 +85,9 @@ export default function AdsPage() {
             </div>
 
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {ads.map((ad) => (
+                {loading ? (
+                    Array.from({ length: 3 }).map((_, index) => <AdSkeleton key={index} />)
+                ) : ads.map((ad) => (
                     <Card key={ad.id} className="flex flex-col overflow-hidden transition-shadow hover:shadow-lg">
                         <CardHeader className="p-0">
                             <div className="relative">
@@ -90,7 +124,7 @@ export default function AdsPage() {
                         </CardFooter>
                     </Card>
                 ))}
-                 {ads.length === 0 && (
+                 {!loading && ads.length === 0 && (
                     <Card 
                         className="md:col-span-2 lg:col-span-3 border-2 border-dashed border-muted-foreground/50 flex flex-col items-center justify-center text-center p-8 hover:border-primary transition-colors cursor-pointer"
                         onClick={handleCreateNew}

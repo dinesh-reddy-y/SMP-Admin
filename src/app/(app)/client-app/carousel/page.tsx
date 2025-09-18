@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { ImageEditorDialog } from "@/components/image-editor-dialog";
 import type { CarouselImage } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const initialCarouselImages: CarouselImage[] = [
   { id: 1, src: "https://picsum.photos/seed/carousel1/800/400", alt: "Carousel Image 1", hint: "nature landscape", active: true },
@@ -18,10 +19,38 @@ const initialCarouselImages: CarouselImage[] = [
   { id: 3, src: "https://picsum.photos/seed/carousel3/800/400", alt: "Carousel Image 3", hint: "abstract technology", active: false },
 ];
 
+const CarouselItemSkeleton = () => (
+    <div className="flex items-center gap-4 p-2 border rounded-md">
+        <Skeleton className="h-[60px] w-[120px] rounded-md" />
+        <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-1/2" />
+            <Skeleton className="h-3 w-3/4" />
+        </div>
+        <div className="flex items-center gap-2">
+            <Skeleton className="h-6 w-12" />
+            <Skeleton className="h-8 w-8" />
+            <Skeleton className="h-8 w-8" />
+        </div>
+    </div>
+);
+
+
 export default function CarouselPage() {
-  const [images, setImages] = useState<CarouselImage[]>(initialCarouselImages);
+  const [images, setImages] = useState<CarouselImage[]>([]);
   const [editingImage, setEditingImage] = useState<CarouselImage | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchImages = async () => {
+        setLoading(true);
+        // Simulate API call
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        setImages(initialCarouselImages);
+        setLoading(false);
+    };
+    fetchImages();
+  }, []);
 
   const handleToggleActive = (id: number) => {
     setImages(images.map(img => img.id === id ? { ...img, active: !img.active } : img));
@@ -95,7 +124,9 @@ export default function CarouselPage() {
             </Button>
         </CardHeader>
         <CardContent className="space-y-4">
-        {images.length > 0 ? (
+        {loading ? (
+             Array.from({ length: 3 }).map((_, index) => <CarouselItemSkeleton key={index} />)
+        ) : images.length > 0 ? (
             images.map((image) => (
             <div key={image.id} className="flex items-center gap-4 p-2 border rounded-md">
                 <div className="relative">
