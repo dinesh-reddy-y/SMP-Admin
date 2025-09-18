@@ -9,10 +9,10 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const existingUsersData: User[] = [
-  { id: 1, name: 'John Doe', email: 'john@example.com', role: 'Admin', createdAt: new Date('2023-01-15').toISOString(), ratingAsUser: 4.8, ratingAsTransporter: 4.9, earnings: 1500 },
-  { id: 2, name: 'Jane Smith', email: 'jane@example.com', role: 'User', createdAt: new Date('2023-02-20').toISOString(), ratingAsUser: 4.5, ratingAsTransporter: null, earnings: 0 },
-  { id: 3, name: 'Sam Wilson', email: 'sam@example.com', role: 'User', createdAt: new Date('2023-03-10').toISOString(), ratingAsUser: 4.9, ratingAsTransporter: 5.0, earnings: 3200 },
-  { id: 4, name: 'Alice Brown', email: 'alice@example.com', role: 'Guest', createdAt: new Date('2023-04-05').toISOString(), ratingAsUser: null, ratingAsTransporter: null, earnings: 0 },
+  { id: '1', first_name: 'John', last_name: 'Doe', email: 'john@example.com', mbl_num: '1234567890', is_verified: true, roles_id: '1', total_earnings: '1500.00', is_active: true, is_blocked: false, created_date: new Date('2023-01-15').toISOString(), ratingAsUser: 4.8, ratingAsTransporter: 4.9 },
+  { id: '2', first_name: 'Jane', last_name: 'Smith', email: 'jane@example.com', mbl_num: '1234567891', is_verified: true, roles_id: '2', total_earnings: '0.00', is_active: true, is_blocked: false, created_date: new Date('2023-02-20').toISOString(), ratingAsUser: 4.5, ratingAsTransporter: null },
+  { id: '3', first_name: 'Sam', last_name: 'Wilson', email: 'sam@example.com', mbl_num: '1234567892', is_verified: true, roles_id: '2', total_earnings: '3200.00', is_active: true, is_blocked: false, created_date: new Date('2023-03-10').toISOString(), ratingAsUser: 4.9, ratingAsTransporter: 5.0 },
+  { id: '4', first_name: 'Alice', last_name: 'Brown', email: 'alice@example.com', mbl_num: '1234567893', is_verified: false, roles_id: '3', total_earnings: '0.00', is_active: false, is_blocked: false, created_date: new Date('2023-04-05').toISOString(), ratingAsUser: null, ratingAsTransporter: null },
 ];
 
 const UserCardSkeleton = () => (

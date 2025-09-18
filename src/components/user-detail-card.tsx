@@ -22,11 +22,20 @@ interface UserDetailCardProps {
   user: User;
 }
 
-const getRoleBadgeVariant = (role: User['role']) => {
-    switch (role) {
-      case 'Admin': return 'default';
-      case 'User': return 'secondary';
-      case 'Guest': return 'outline';
+const getRoleFromId = (roleId: string) => {
+    switch (roleId) {
+        case '1': return 'Admin';
+        case '2': return 'User';
+        case '3': return 'Guest';
+        default: return 'User';
+    }
+};
+
+const getRoleBadgeVariant = (roleId: string) => {
+    switch (roleId) {
+      case '1': return 'default';
+      case '2': return 'secondary';
+      case '3': return 'outline';
       default: return 'secondary';
     }
 };
@@ -42,7 +51,10 @@ const DetailRow = ({ icon, label, value, valueComponent }: { icon: React.ReactNo
 );
 
 export function UserDetailCard({ user }: UserDetailCardProps) {
-  const userInitial = user.name.charAt(0).toUpperCase();
+  const fullName = `${user.first_name} ${user.last_name}`;
+  const userInitial = user.first_name.charAt(0).toUpperCase();
+  const userRole = getRoleFromId(user.roles_id);
+  const earnings = parseFloat(user.total_earnings);
 
   return (
     <Card className="flex flex-col text-center transition-all hover:shadow-lg hover:-translate-y-1">
@@ -52,10 +64,10 @@ export function UserDetailCard({ user }: UserDetailCardProps) {
                 <AvatarFallback>{userInitial}</AvatarFallback>
             </Avatar>
             <div>
-                <h3 className="text-lg font-semibold">{user.name}</h3>
+                <h3 className="text-lg font-semibold">{fullName}</h3>
                 <p className="text-sm text-muted-foreground">{user.email}</p>
             </div>
-            <Badge variant={getRoleBadgeVariant(user.role)}>{user.role}</Badge>
+            <Badge variant={getRoleBadgeVariant(user.roles_id)}>{userRole}</Badge>
       </CardContent>
       <CardFooter className="p-3 pt-0 border-t">
         <Dialog>
@@ -70,7 +82,7 @@ export function UserDetailCard({ user }: UserDetailCardProps) {
                     <AvatarFallback>{userInitial}</AvatarFallback>
                 </Avatar>
                 <div>
-                    <DialogTitle className="text-xl">{user.name}</DialogTitle>
+                    <DialogTitle className="text-xl">{fullName}</DialogTitle>
                     <DialogDescription>
                         Detailed information including ratings and earnings.
                     </DialogDescription>
@@ -79,16 +91,16 @@ export function UserDetailCard({ user }: UserDetailCardProps) {
             </DialogHeader>
             <div className="space-y-4 py-4">
                 <DetailRow icon={<Mail className="h-4 w-4 text-muted-foreground" />} label="Email" value={user.email} />
-                <DetailRow icon={<CalendarIcon className="h-4 w-4 text-muted-foreground" />} label="Joined Date" value={format(new Date(user.createdAt), "PPP")} />
+                <DetailRow icon={<CalendarIcon className="h-4 w-4 text-muted-foreground" />} label="Joined Date" value={format(new Date(user.created_date), "PPP")} />
                 <DetailRow 
                     icon={<UserIcon className="h-4 w-4 text-muted-foreground" />} 
                     label="Role" 
-                    valueComponent={<Badge variant={getRoleBadgeVariant(user.role)}>{user.role}</Badge>} 
+                    valueComponent={<Badge variant={getRoleBadgeVariant(user.roles_id)}>{userRole}</Badge>} 
                 />
                 <Separator />
                 <DetailRow icon={<UserIcon className="h-4 w-4 text-muted-foreground" />} label="Rating as User" value={user.ratingAsUser ? `${user.ratingAsUser} / 5.0` : null} />
                 <DetailRow icon={<Truck className="h-4 w-4 text-muted-foreground" />} label="Rating as Transporter" value={user.ratingAsTransporter ? `${user.ratingAsTransporter} / 5.0` : null} />
-                <DetailRow icon={<DollarSign className="h-4 w-4 text-muted-foreground" />} label="Total Earnings" value={user.earnings ? `$${user.earnings.toFixed(2)}` : '$0.00'} />
+                <DetailRow icon={<DollarSign className="h-4 w-4 text-muted-foreground" />} label="Total Earnings" value={earnings ? `$${earnings.toFixed(2)}` : '$0.00'} />
             </div>
             <DialogFooter>
                 <Button type="button" variant="secondary">Close</Button>

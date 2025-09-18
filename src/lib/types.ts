@@ -1,12 +1,17 @@
 export interface User {
-  id: number;
-  name: string;
+  id: string;
+  first_name: string;
+  last_name: string;
   email: string;
-  role: 'Admin' | 'User' | 'Guest';
-  createdAt: string;
-  ratingAsUser: number | null;
-  ratingAsTransporter: number | null;
-  earnings: number;
+  mbl_num: string;
+  is_verified: boolean;
+  roles_id: string;
+  total_earnings: string;
+  is_active: boolean;
+  is_blocked: boolean;
+  created_date: string;
+  ratingAsUser?: number | null; // Optional fields from old structure
+  ratingAsTransporter?: number | null; // Optional fields from old structure
 }
 
 export interface Notification {
