@@ -38,7 +38,7 @@ export default function LoginPage() {
       <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
         <div className="absolute inset-0 bg-zinc-900" />
         <Image
-            src="https://picsum.photos/seed/delivery-truck/1200/1800"
+            src="https://cdn.pixabay.com/photo/2021/02/10/17/18/bicycle-6002845_1280.jpg"
             alt="Delivery truck on the move"
             fill
             className="object-cover opacity-30"
@@ -57,7 +57,7 @@ export default function LoginPage() {
             >
                 <path d="M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3" />
             </svg>
-            ShipMypack Secure
+            ShipMyPack
         </div>
         <div className="relative z-20 mt-auto">
             <blockquote className="space-y-2">
@@ -78,7 +78,6 @@ export default function LoginPage() {
           <div className="grid gap-2 text-center">
             <h1 className="text-3xl font-bold">Welcome Back!</h1>
             <p className="text-balance text-muted-foreground">
-              Enter your mobile number and password to access your account.
             </p>
           </div>
           <form onSubmit={handleSignIn} className="grid gap-4">
