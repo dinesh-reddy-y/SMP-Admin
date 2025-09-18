@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Mail, Lock } from "lucide-react";
 import { useState } from "react";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -68,11 +69,14 @@ export default function LoginPage() {
             </blockquote>
         </div>
       </div>
-      <div className="flex items-center justify-center py-12 bg-gray-950 text-white">
+      <div className="relative flex items-center justify-center py-12">
+        <div className="absolute top-4 right-4">
+            <ThemeToggle />
+        </div>
         <div className="mx-auto grid w-[350px] gap-6">
           <div className="grid gap-2 text-center">
             <h1 className="text-3xl font-bold">Welcome Back!</h1>
-            <p className="text-balance text-muted-foreground text-gray-400">
+            <p className="text-balance text-muted-foreground">
               Enter your email and password to access your account.
             </p>
           </div>
@@ -80,13 +84,13 @@ export default function LoginPage() {
             <div className="grid gap-2">
               <Label htmlFor="email">Email address</Label>
                <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
                   placeholder="hello@shipmypack.design"
                   required
-                  className="pl-10 bg-gray-900 border-gray-700 focus:ring-blue-500"
+                  className="pl-10"
                 />
               </div>
             </div>
@@ -95,23 +99,23 @@ export default function LoginPage() {
                 <Label htmlFor="password">Password</Label>
                 <Link
                   href="#"
-                  className="ml-auto inline-block text-sm text-blue-400 hover:underline"
+                  className="ml-auto inline-block text-sm text-primary hover:underline"
                 >
                   Forgot Password?
                 </Link>
               </div>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
                     id="password" 
                     type="password" 
                     required 
                     placeholder="Enter your password"
-                    className="pl-10 bg-gray-900 border-gray-700 focus:ring-blue-500"
+                    className="pl-10"
                 />
               </div>
             </div>
-            <Button type="submit" className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold" disabled={isLoading}>
+            <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? "Signing In..." : "Sign in"}
             </Button>
           </form>
