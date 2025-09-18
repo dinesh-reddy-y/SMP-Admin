@@ -62,10 +62,10 @@ export default function LoginPage() {
         <div className="relative z-20 mt-auto">
             <blockquote className="space-y-2">
             <p className="text-4xl font-bold">
-                Your Packages, Our Priority.
+                Secure Delivery You Can Trust.
             </p>
             <footer className="text-lg">
-                Delivering with speed, security, and unwavering trust.
+                Your packages, our priority. Delivered with speed and unwavering belief.
             </footer>
             </blockquote>
         </div>
