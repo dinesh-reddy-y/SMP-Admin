@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Mail, Lock } from "lucide-react";
+import { Phone, Lock, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 
@@ -16,6 +16,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSignIn = (event: React.FormEvent) => {
     event.preventDefault();
@@ -37,11 +38,11 @@ export default function LoginPage() {
       <div className="relative hidden h-full flex-col bg-muted p-10 text-white dark:border-r lg:flex">
         <div className="absolute inset-0 bg-zinc-900" />
         <Image
-            src="https://picsum.photos/seed/login-bg/1200/1800"
-            alt="Serene desert landscape at dusk"
+            src="https://picsum.photos/seed/delivery-truck/1200/1800"
+            alt="Delivery truck on the move"
             fill
             className="object-cover opacity-30"
-            data-ai-hint="desert landscape"
+            data-ai-hint="delivery truck"
         />
         <div className="relative z-20 flex items-center text-lg font-medium">
             <svg
@@ -61,10 +62,10 @@ export default function LoginPage() {
         <div className="relative z-20 mt-auto">
             <blockquote className="space-y-2">
             <p className="text-4xl font-bold">
-                Reliable Delivery, Unwavering Trust
+                Your Packages, Our Priority.
             </p>
             <footer className="text-lg">
-                Securely delivering your goods, every time.
+                Delivering with speed, security, and unwavering trust.
             </footer>
             </blockquote>
         </div>
@@ -77,20 +78,23 @@ export default function LoginPage() {
           <div className="grid gap-2 text-center">
             <h1 className="text-3xl font-bold">Welcome Back!</h1>
             <p className="text-balance text-muted-foreground">
-              Enter your email and password to access your account.
+              Enter your mobile number and password to access your account.
             </p>
           </div>
           <form onSubmit={handleSignIn} className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="email">Email address</Label>
+              <Label htmlFor="mobile">Mobile Number</Label>
                <div className="relative">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="email"
-                  type="email"
-                  placeholder="hello@shipmypack.design"
+                  id="mobile"
+                  type="tel"
+                  placeholder="Enter your 10-digit number"
                   required
                   className="pl-10"
+                  pattern="\d{10}"
+                  maxLength={10}
+                  title="Please enter a valid 10-digit mobile number"
                 />
               </div>
             </div>
@@ -108,11 +112,19 @@ export default function LoginPage() {
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
                     id="password" 
-                    type="password" 
+                    type={showPassword ? "text" : "password"} 
                     required 
                     placeholder="Enter your password"
-                    className="pl-10"
+                    className="pl-10 pr-10"
                 />
+                <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                    {showPassword ? <EyeOff /> : <Eye />}
+                </button>
               </div>
             </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
