@@ -82,3 +82,10 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Add custom styles for the login page */
+@layer components {
+    .bg-gradient-login {
+        background-image: radial-gradient(circle at top right, hsl(222, 84%, 15%), hsl(222, 84%, 5%));
+    }
+}
