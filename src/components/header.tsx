@@ -4,6 +4,7 @@
 import { usePathname } from 'next/navigation';
 import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Notifications } from "./notifications";
+import { ThemeToggle } from './theme-toggle';
 
 const getTitleFromPathname = (pathname: string): string => {
   if (pathname === '/dashboard') return 'Dashboard';
@@ -32,8 +33,9 @@ export function Header() {
         <SidebarTrigger />
       </div>
       <h1 className="text-2xl font-semibold">{title}</h1>
-      <div className="ml-auto">
+      <div className="ml-auto flex items-center gap-2">
         <Notifications />
+        <ThemeToggle />
       </div>
     </header>
   );
