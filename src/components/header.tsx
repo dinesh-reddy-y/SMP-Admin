@@ -1,3 +1,4 @@
+
 "use client";
 
 import { usePathname } from 'next/navigation';
@@ -5,7 +6,7 @@ import { SidebarTrigger } from "@/components/ui/sidebar";
 import { Notifications } from "./notifications";
 
 const getTitleFromPathname = (pathname: string): string => {
-  if (pathname === '/') return 'Dashboard';
+  if (pathname === '/dashboard') return 'Dashboard';
 
   const segments = pathname.split('/').filter(Boolean);
   const title = segments

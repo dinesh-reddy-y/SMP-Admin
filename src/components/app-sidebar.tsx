@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -49,8 +50,8 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarMenu>
           <SidebarMenuItem>
-            <Link href="/" passHref>
-              <SidebarMenuButton asChild isActive={pathname === "/"}>
+            <Link href="/dashboard" passHref>
+              <SidebarMenuButton asChild isActive={pathname === "/dashboard"}>
                 <span>
                   <Home />
                   Dashboard
