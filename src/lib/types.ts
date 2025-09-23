@@ -20,16 +20,22 @@ export interface Notification {
   timestamp: Date;
 }
 
+// Update CarouselImage type to match API response
 export interface CarouselImage {
-    id: number;
-    src: string;
-    alt: string;
-    hint: string;
-    active: boolean;
-}
+  id: string;
+  image_key: string;
+  image_url: string;
+  is_active: boolean;
+  is_deleted: boolean;
+  created_by: string;
+  created_date: string;
+  modified_by: string;
+  modified_date: string;
+};
 
 export interface Ad extends CarouselImage {
+    title: string;
     client: string;
     description?: string;
-    link?: string;
+    redirect_url?: string;
 }

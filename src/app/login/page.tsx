@@ -11,26 +11,48 @@ import { useToast } from "@/hooks/use-toast";
 import { Phone, Lock, Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { login } from "../constants/authService";
 
 export default function LoginPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [mobile, setMobile] = useState("");
+  const [password, setPassword] = useState("");
 
-  const handleSignIn = (event: React.FormEvent) => {
+  const handleSignIn = async (event: React.FormEvent) => {
     event.preventDefault();
     setIsLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      // In a real app, you would handle authentication here
+    try {
+      const data = await login(mobile, password);
+
+      if (!data.token) {
+        toast({
+          title: "Login Failed",
+          description: data.message || "Invalid credentials. Please try again.",
+          variant: "destructive",
+        });
+        return; // early return
+      }
+      localStorage.setItem("auth_token", data.token);
+
       toast({
         title: "Login Successful",
         description: "Welcome back! Redirecting to your dashboard.",
       });
       router.push("/dashboard");
-    }, 1500);
+
+    } catch (error: any) {
+      toast({
+        title: "An Error Occurred",
+        description: error.response?.data?.message || "Something went wrong. Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -94,6 +116,8 @@ export default function LoginPage() {
                   pattern="\d{10}"
                   maxLength={10}
                   title="Please enter a valid 10-digit mobile number"
+                  value={mobile}
+                  onChange={(e) => setMobile(e.target.value)}
                 />
               </div>
             </div>
@@ -115,6 +139,8 @@ export default function LoginPage() {
                     required 
                     placeholder="Enter your password"
                     className="pl-10 pr-10"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
                 />
                 <button
                     type="button"

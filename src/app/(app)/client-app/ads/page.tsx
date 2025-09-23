@@ -8,14 +8,9 @@ import { Button } from "@/components/ui/button";
 import { PlusCircle, Edit, Trash2, CheckCircle, XCircle, UploadCloud } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { AdEditorDialog } from "@/components/ad-editor-dialog";
-import type { Ad } from "@/lib/types";
 import { Skeleton } from "@/components/ui/skeleton";
-
-const initialAds: Ad[] = [
-  { id: 1, src: "https://picsum.photos/seed/ad1/600/400", alt: "Summer Sale Banner", hint: "summer sale", active: true, client: "FashionNova", description: "Get 50% off on all summer collections.", link: "https://example.com/sale" },
-  { id: 2, src: "https://picsum.photos/seed/ad2/600/400", alt: "New Gadget Launch", hint: "tech gadget", active: true, client: "TechCorp", description: "The future is here. Pre-order now.", link: "https://example.com/gadget" },
-  { id: 3, src: "https://picsum.photos/seed/ad3/600/400", alt: "Holiday Travel Deals", hint: "travel holiday", active: false, client: "GoTravel", description: "Explore the world with our exclusive deals.", link: "https://example.com/travel" },
-];
+import { fetchAds, saveAd, deleteAd, upload_image_to_s3 } from "@/app/constants/authService";
+import type { Ad } from "@/lib/types";
 
 const AdSkeleton = () => (
     <Card className="flex flex-col overflow-hidden">
@@ -35,44 +30,62 @@ const AdSkeleton = () => (
     </Card>
 );
 
-
 export default function AdsPage() {
     const [ads, setAds] = useState<Ad[]>([]);
     const [editingAd, setEditingAd] = useState<Partial<Ad> | null>(null);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchAds = async () => {
-            setLoading(true);
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            setAds(initialAds);
-            setLoading(false);
+        const loadAds = async () => {
+            try {
+                setLoading(true);
+                const data = await fetchAds();
+                setAds(data);
+            } catch (e) {
+                console.error(e);
+            } finally {
+                setLoading(false);
+            }
         };
-        fetchAds();
+        loadAds();
     }, []);
 
-    const handleSaveAd = (adData: Ad) => {
-        const existingAdIndex = ads.findIndex(ad => ad.id === adData.id);
+    const handleSaveAd = async (adData: Partial<Ad>, file?: File) => {
+        try {
+            let adToSave = { ...adData };
 
-        if (existingAdIndex !== -1) {
-            setAds(ads.map((ad, index) => index === existingAdIndex ? adData : ad));
-        } else {
-            const newAd: Ad = {
-                ...adData,
-                id: ads.length > 0 ? Math.max(...ads.map(i => i.id)) + 1 : 1,
-            };
-            setAds(prevAds => [newAd, ...prevAds]);
+            if (file) {
+                const fileName = file.name;
+                const uploadRes = await upload_image_to_s3(file, fileName);
+                adToSave.image_key = uploadRes.imageKey;
+                adToSave.image_url = uploadRes.imageUrl;
+            }
+
+            await saveAd(adToSave);
+
+            // Refresh ads after save
+            const data = await fetchAds();
+            setAds(data);
+            setEditingAd(null);
+        } catch (e) {
+            console.error(e);
         }
-        setEditingAd(null);
     };
 
-    const handleCreateNew = () => {
-        setEditingAd({});
+    const handleDelete = async (id: string) => {
+        try {
+            await deleteAd(id);
+            setAds(ads.filter((ad) => ad.id !== id));
+        } catch (e) {
+            console.error(e);
+        }
     };
+
+    const handleCreateNew = () => setEditingAd({});
 
     return (
         <main className="flex-1 p-4 md:p-6 space-y-6">
+            {/* Header */}
             <div className="flex items-center justify-between">
                 <div className="space-y-2">
                     <h1 className="text-2xl font-bold tracking-tight">Ads Management</h1>
@@ -84,48 +97,54 @@ export default function AdsPage() {
                 </Button>
             </div>
 
+            {/* Ads grid */}
             <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {loading ? (
                     Array.from({ length: 3 }).map((_, index) => <AdSkeleton key={index} />)
-                ) : ads.map((ad) => (
-                    <Card key={ad.id} className="flex flex-col overflow-hidden transition-shadow hover:shadow-lg">
-                        <CardHeader className="p-0">
-                            <div className="relative">
-                                <a href={ad.link} target="_blank" rel="noopener noreferrer">
-                                    <Image
-                                        src={ad.src}
-                                        alt={ad.alt}
-                                        width={600}
-                                        height={400}
-                                        className="aspect-video w-full object-cover"
-                                        data-ai-hint={ad.hint}
-                                    />
-                                </a>
-                                <Badge variant={ad.active ? 'default' : 'secondary'} className="absolute top-2 left-2">
-                                    {ad.active ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
-                                    {ad.active ? 'Active' : 'Inactive'}
-                                </Badge>
-                            </div>
-                        </CardHeader>
-                        <CardContent className="p-4 flex-grow">
-                            <h3 className="text-lg font-semibold">{ad.alt}</h3>
-                            <p className="text-sm font-semibold text-primary">{ad.client}</p>
-                            <p className="text-sm text-muted-foreground mt-2">{ad.description}</p>
-                        </CardContent>
-                        <CardFooter className="p-2 border-t bg-muted/50">
-                            <div className="flex w-full justify-end gap-2">
-                                <Button variant="ghost" size="icon" onClick={() => setEditingAd(ad)}>
-                                    <Edit className="h-4 w-4" />
-                                </Button>
-                                <Button variant="ghost" size="icon" className="text-destructive hover:text-destructive">
-                                    <Trash2 className="h-4 w-4" />
-                                </Button>
-                            </div>
-                        </CardFooter>
-                    </Card>
-                ))}
-                 {!loading && ads.length === 0 && (
-                    <Card 
+                ) : ads.length > 0 ? (
+                    ads.map((ad) => (
+                        <Card key={ad.id} className="flex flex-col overflow-hidden transition-shadow hover:shadow-lg">
+                            <CardHeader className="p-0">
+                                <div className="relative">
+                                    <a href={ad.redirect_url} target="_blank" rel="noopener noreferrer">
+                                        <Image
+                                            src={ad.image_url}
+                                            alt={ad.title}
+                                            width={600}
+                                            height={400}
+                                            className="aspect-video w-full object-cover"
+                                            data-ai-hint={ad.title}
+                                        />
+                                    </a>
+                                    <Badge variant={ad.is_active ? "default" : "secondary"} className="absolute top-2 left-2">
+                                        {ad.is_active ? <CheckCircle className="h-3 w-3 mr-1" /> : <XCircle className="h-3 w-3 mr-1" />}
+                                        {ad.is_active ? "Active" : "Inactive"}
+                                    </Badge>
+                                </div>
+                            </CardHeader>
+                            <CardContent className="p-4 flex-grow">
+                                <h3 className="text-lg font-semibold">{ad.title}</h3>
+                                <p className="text-sm text-muted-foreground mt-2">{ad.description}</p>
+                            </CardContent>
+                            <CardFooter className="p-2 border-t bg-muted/50">
+                                <div className="flex w-full justify-end gap-2">
+                                    <Button variant="ghost" size="icon" onClick={() => setEditingAd(ad)}>
+                                        <Edit className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="text-destructive hover:text-destructive"
+                                        onClick={() => handleDelete(ad.id)}
+                                    >
+                                        <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </CardFooter>
+                        </Card>
+                    ))
+                ) : (
+                    <Card
                         className="md:col-span-2 lg:col-span-3 border-2 border-dashed border-muted-foreground/50 flex flex-col items-center justify-center text-center p-8 hover:border-primary transition-colors cursor-pointer"
                         onClick={handleCreateNew}
                     >
@@ -138,11 +157,7 @@ export default function AdsPage() {
             </div>
 
             {editingAd && (
-                <AdEditorDialog
-                    ad={editingAd}
-                    onSave={handleSaveAd}
-                    onClose={() => setEditingAd(null)}
-                />
+                <AdEditorDialog ad={editingAd} onSave={handleSaveAd} onClose={() => setEditingAd(null)} />
             )}
         </main>
     );

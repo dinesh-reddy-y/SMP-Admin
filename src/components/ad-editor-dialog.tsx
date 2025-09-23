@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useRef } from 'react';
@@ -27,88 +26,65 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Textarea } from './ui/textarea';
 import { Switch } from './ui/switch';
-import { Label } from './ui/label';
-import { ImageEditorDialog } from './image-editor-dialog';
-import { UploadCloud, Edit } from 'lucide-react';
+import { UploadCloud } from 'lucide-react';
 
-import type { Ad, CarouselImage } from '@/lib/types';
+import type { Ad } from '@/lib/types';
 import { useToast } from '@/hooks/use-toast';
 
 interface AdEditorDialogProps {
   ad: Partial<Ad>;
-  onSave: (data: Ad) => void;
+  onSave: (data: Partial<Ad>, file?: File) => void;
   onClose: () => void;
 }
 
 const adSchema = z.object({
-  alt: z.string().min(1, "Title is required."),
+  title: z.string().min(1, "Title is required."),
   client: z.string().min(1, "Client name is required."),
   description: z.string().optional(),
-  link: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
-  src: z.string().min(1, "An image is required."),
-  active: z.boolean(),
+  redirect_url: z.string().url({ message: "Please enter a valid URL." }).optional().or(z.literal('')),
+  image_url: z.string().min(1, "An image is required."),
+  is_active: z.boolean(),
 });
 
 export function AdEditorDialog({ ad, onSave, onClose }: AdEditorDialogProps) {
   const { toast } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [imageToEdit, setImageToEdit] = useState<CarouselImage | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(ad.image_url ?? null);
+  const [imageFile, setImageFile] = useState<File | undefined>();
 
   const form = useForm<z.infer<typeof adSchema>>({
     resolver: zodResolver(adSchema),
     defaultValues: {
-      alt: ad.alt ?? '',
+      title: ad.title ?? '',
       client: ad.client ?? '',
       description: ad.description ?? '',
-      link: ad.link ?? '',
-      src: ad.src ?? '',
-      active: ad.active ?? true,
+      redirect_url: ad.redirect_url ?? '',
+      image_url: ad.image_url ?? '',
+      is_active: ad.is_active ?? true,
     },
   });
-
-  const currentImageSrc = form.watch('src');
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
+      setImageFile(file);
       const reader = new FileReader();
-      reader.onload = (e) => {
-        if (e.target?.result) {
-          const newImage: CarouselImage = {
-            id: ad.id ?? Date.now(),
-            src: e.target.result as string,
-            alt: file.name,
-            hint: 'ad image',
-            active: true,
-          };
-          setImageToEdit(newImage);
-        }
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+        form.setValue('image_url', reader.result as string, { shouldValidate: true });
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleImageEditorSave = (id: number, newSrc: string) => {
-    form.setValue('src', newSrc, { shouldValidate: true });
-    if (!form.getValues('alt')) {
-      form.setValue('alt', imageToEdit?.alt ?? 'New Ad');
-    }
-    setImageToEdit(null);
-  };
-  
-  const handleImageEditorClose = () => {
-    setImageToEdit(null);
-    if (fileInputRef.current) {
-        fileInputRef.current.value = "";
-    }
-  }
-
   function onSubmit(values: z.infer<typeof adSchema>) {
-    onSave({
-      ...values,
-      id: ad.id ?? 0,
-      hint: 'custom ad',
-    });
+    onSave(
+      {
+        ...ad,
+        ...values,
+      },
+      imageFile
+    );
     toast({
         title: "Ad Saved",
         description: "The ad details have been successfully updated.",
@@ -116,7 +92,6 @@ export function AdEditorDialog({ ad, onSave, onClose }: AdEditorDialogProps) {
   }
 
   return (
-    <>
       <Dialog open={true} onOpenChange={onClose}>
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
@@ -131,7 +106,7 @@ export function AdEditorDialog({ ad, onSave, onClose }: AdEditorDialogProps) {
                 <div className="space-y-4">
                     <FormField
                     control={form.control}
-                    name="alt"
+                    name="title"
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Ad Title</FormLabel>
@@ -170,7 +145,7 @@ export function AdEditorDialog({ ad, onSave, onClose }: AdEditorDialogProps) {
                     />
                     <FormField
                     control={form.control}
-                    name="link"
+                    name="redirect_url"
                     render={({ field }) => (
                         <FormItem>
                         <FormLabel>Redirect Link</FormLabel>
@@ -188,13 +163,8 @@ export function AdEditorDialog({ ad, onSave, onClose }: AdEditorDialogProps) {
                         className="relative border-2 border-dashed border-muted-foreground/50 rounded-lg p-4 flex flex-col items-center justify-center text-center hover:border-primary transition-colors cursor-pointer aspect-video"
                         onClick={() => fileInputRef.current?.click()}
                     >
-                        {currentImageSrc ? (
-                            <>
-                                <Image src={currentImageSrc} alt="Ad image preview" layout="fill" objectFit="contain" className="rounded-md" />
-                                <Button type="button" variant="outline" size="icon" className="absolute top-2 right-2 z-10 bg-background/70 hover:bg-background">
-                                    <Edit className="h-4 w-4" />
-                                </Button>
-                            </>
+                        {imagePreview ? (
+                            <Image src={imagePreview} alt="Ad image preview" fill className="rounded-md object-contain" />
                         ) : (
                             <>
                                 <UploadCloud className="h-12 w-12 text-muted-foreground" />
@@ -210,10 +180,10 @@ export function AdEditorDialog({ ad, onSave, onClose }: AdEditorDialogProps) {
                             onChange={handleFileChange}
                         />
                     </div>
-                     <FormMessage>{form.formState.errors.src?.message}</FormMessage>
+                     <FormMessage>{form.formState.errors.image_url?.message}</FormMessage>
                      <FormField
                         control={form.control}
-                        name="active"
+                        name="is_active"
                         render={({ field }) => (
                             <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
                             <div className="space-y-0.5">
@@ -242,13 +212,5 @@ export function AdEditorDialog({ ad, onSave, onClose }: AdEditorDialogProps) {
           </Form>
         </DialogContent>
       </Dialog>
-      {imageToEdit && (
-          <ImageEditorDialog
-            image={imageToEdit}
-            onSave={handleImageEditorSave}
-            onClose={handleImageEditorClose}
-          />
-      )}
-    </>
   );
 }
