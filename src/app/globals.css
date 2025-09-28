@@ -89,3 +89,20 @@
         background-image: radial-gradient(circle at top right, hsl(222, 84%, 15%), hsl(222, 84%, 5%));
     }
 }
+
+@keyframes gradient-animation {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.animated-gradient {
+  background-size: 200% 200%;
+  animation: gradient-animation 15s ease infinite;
+}
